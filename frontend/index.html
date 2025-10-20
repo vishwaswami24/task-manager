@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        function CommentsPanel({ taskId }) {
+          const [comments, setComments] = useState([])
+          const [author, setAuthor] = useState('')
+          const [content, setContent] = useState('')
+          const [editing, setEditing] = useState(null)
+          const base = `/api/tasks/${taskId}/comments`
+
+          useEffect(() => {
+            fetch(base).then(r => r.json()).then(setComments)
+          }, [taskId])
+
+          async function addComment(e) {
+            e.preventDefault()
+            const res = await fetch(base, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({author, content})})
+            if(res.ok){ const c = await res.json(); setComments([...comments, c]); setAuthor(''); setContent('') }
+          }
+
+          async function saveEdit() {
+            const res = await fetch(`${base}/${editing.id}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(editing)})
+            if(res.ok){ const updated = await res.json(); setComments(prev=>prev.map(c=>c.id===updated.id?updated:c)); setEditing(null) }
+          }
+
+          async function remove(id) {
+            const res = await fetch(`${base}/${id}`, {method:'DELETE'})
+            if(res.status===204) setComments(prev=>prev.filter(c=>c.id!==id))
+          }
+
+          return <div className="comments-section">
+            <h4><i className="fas fa-comments"></i> Comments</h4>
+            {comments.map(c=><div key={c.id} className="comment-item">
+              <div className="comment-author"><i className="fas fa-user"></i> {c.author}</div>
+              <div className="comment-content">{c.content}</div>
+              <div className="comment-actions">
+                <button className="btn btn-secondary" onClick={()=>setEditing(c)}><i className="fas fa-edit"></i> Edit</button>
+                <button className="btn btn-danger" onClick={()=>remove(c.id)}><i className="fas fa-trash"></i> Delete</button>
+              </div>
+            </div>)}
+            {editing ? <div className="edit-form">
+              <div className="form-group">
+                <label>Author</label>
+                <input className="form-control" value={editing.author} onChange={e=>setEditing({...editing,author:e.target.value})}/>
+              </div>
+              <div className="form-group">
+                <label>Comment</label>
+                <textarea className="form-control" value={editing.content} onChange={e=>setEditing({...editing,content:e.target.value})}/>
+              </div>
+              <button className="btn btn-primary" onClick={saveEdit}><i className="fas fa-save"></i> Save</button>
+              <button className="btn btn-secondary" onClick={()=>setEditing(null)}><i className="fas fa-times"></i> Cancel</button>
+            </div>
+            : <form onSubmit={addComment}>
+                <div className="form-group">
+                  <label>Author</label>
+                  <input className="form-control" value={author} onChange={e=>setAuthor(e.target.value)} placeholder='Your name' required/>
+                </div>
+                <div className="form-group">
+                  <label>Comment</label>
+                  <textarea className="form-control" value={content} onChange={e=>setContent(e.target.value)} placeholder='Write your comment...' required/>
+                </div>
+                <button type='submit' className="btn btn-primary"><i className="fas fa-plus"></i> Add Comment</button>
+              </form>}
+          </div>
+        }
+
+        function TaskList(){
+          const [tasks, setTasks] = useState([])
+          const [title, setTitle] = useState('')
+          const [selected, setSelected] = useState(null)
+          const [editingTask, setEditingTask] = useState(null)
+
+          useEffect(()=>{ fetch('/api/tasks').then(r=>r.json()).then(setTasks) },[])
+
+          async function addTask(e){
+            e.preventDefault()
+            const res = await fetch('/api/tasks', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({title})})
+            if(res.ok){ const t = await res.json(); setTasks([t, ...tasks]); setTitle('') }
+          }
+
+          async function saveEdit() {
+            if (!editingTask.title.trim()) {
+              alert('Title cannot be empty');
+              return;
+            }
+            const updateData = { title: editingTask.title.trim() };
+            if (editingTask.description !== undefined) {
+              updateData.description = editingTask.description;
+            }
+            const res = await fetch(`/api/tasks/${editingTask.id}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(updateData)})
+            if(res.ok){ const updated = await res.json(); setTasks(prev=>prev.map(t=>t.id===updated.id?updated:t)); setEditingTask(null) }
+          }
+
+          async function deleteTask(id){
+            if(!window.confirm('Are you sure you want to delete this task?')) return
+            const res = await fetch(`/api/tasks/${id}`, {method:'DELETE'})
+            if(res.status===204) setTasks(tasks.filter(t=>t.id!==id))
+          }
+
+          return <div className="container">
+            <div className="header">
+              <h1><i className="fas fa-tasks"></i> Task Manager</h1>
+            </div>
+            <div className="grid">
+              <div className="card">
+                <h2><i className="fas fa-list-check"></i> Tasks</h2>
+                <form onSubmit={addTask}>
+                  <div className="form-group">
+                    <label>Task Title</label>
+                    <input className="form-control" value={title} onChange={e=>setTitle(e.target.value)} placeholder='Enter new task...' required/>
+                  </div>
+                  <button type='submit' className="btn btn-primary"><i className="fas fa-plus"></i> Add Task</button>
+                </form>
+                <div className="task-list">
+                  {tasks.map(t=><div key={t.id} className="task-item">
+                    {editingTask && editingTask.id === t.id ? (
+                      <div className="edit-form">
+                        <input className="form-control" value={editingTask.title} onChange={e=>setEditingTask({...editingTask, title:e.target.value})}/>
+                        <div className="task-actions">
+                          <button className="btn btn-primary" onClick={saveEdit}><i className="fas fa-save"></i> Save</button>
+                          <button className="btn btn-secondary" onClick={()=>setEditingTask(null)}><i className="fas fa-times"></i> Cancel</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <span className="task-title">{t.title}</span>
+                        <div className="task-actions">
+                          <button className="btn btn-secondary" style={{padding: '6px 12px', fontSize: '14px'}} onClick={()=>setEditingTask(t)} title="Edit task"><i className="fas fa-pencil-alt"></i></button>
+                          <button className="btn btn-primary" onClick={e=>{e.preventDefault(); setSelected(t)}}><i className="fas fa-comments"></i> Comments</button>
+                          <button className="btn btn-danger" onClick={()=>deleteTask(t.id)}><i className="fas fa-trash"></i> Delete</button>
+                        </div>
+                      </>
+                    )}
+                  </div>)}
+                </div>
+              </div>
+              {selected && <div className="card">
+                <h3><i className="fas fa-sticky-note"></i> Task: {selected.title}</h3>
+                <CommentsPanel taskId={selected.id}/>
+              </div>}
+            </div>
+          </div>
+        }
+
+        function App() {
+            return <TaskList />;
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
