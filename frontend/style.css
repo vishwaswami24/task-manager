@@ -132,7 +132,7 @@ body {
     padding: 15px;
     background: #f7fafc;
     border-radius: 8px;
-    margin-bottom: 10px;
+    margin: 10px 0px;
     border-left: 4px solid #48bb78;
 }
 .comment-author {
@@ -167,3 +167,4 @@ body {
         font-size: 2rem;
     }
 }
+
