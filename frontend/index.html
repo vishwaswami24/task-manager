@@ -121,7 +121,7 @@
             <div className="header">
               <h1><i className="fas fa-tasks"></i> Task Manager</h1>
             </div>
-            <div className="grid">
+            <div className={`grid ${selected ? 'two-column' : 'one-column'}`}>
               <div className="card">
                 <h2><i className="fas fa-list-check"></i> Tasks</h2>
                 <form onSubmit={addTask}>
