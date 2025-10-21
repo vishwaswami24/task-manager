@@ -30,11 +30,17 @@ A modern, responsive web application for managing tasks and comments built with 
 task-manager/
 ├── backend/
 │   ├── app.py              # Main Flask application
+│   ├── app.db              # SQLite database file
+│   ├── config.py           # Application configuration
+│   ├── models.py           # Database models
+│   ├── requirements.txt    # Python dependencies
+│   ├── schemas.py          # Data validation schemas
 │   ├── routes/
 │   │   ├── tasks.py        # Task-related API endpoints
 │   │   └── comments.py     # Comment-related API endpoints
-│   ├── schemas.py          # Data validation schemas
-│   └── data.py             # In-memory data storage
+│   └── tests/
+│       ├── conftest.py     # Test configuration
+│       └── test_comments.py # Comment API tests
 ├── frontend/
 │   ├── index.html          # Main HTML file
 │   └── style.css           # Application styles
