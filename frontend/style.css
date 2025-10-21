@@ -156,8 +156,18 @@ body {
 }
 .grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
     gap: 20px;
+}
+.grid.one-column {
+    grid-template-columns: 1fr;
+    justify-items: center;
+}
+.grid.one-column .card {
+    max-width: 600px;
+    width: 100%;
+}
+.grid.two-column {
+    grid-template-columns: 1fr 1fr;
 }
 @media (max-width: 768px) {
     .grid {
@@ -167,4 +177,3 @@ body {
         font-size: 2rem;
     }
 }
-
