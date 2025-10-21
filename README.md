@@ -128,7 +128,8 @@ This project is open source and available under the [MIT License](LICENSE).
 
 ## Screenshots
 
-(Add screenshots here when available)
+![ScreenRecording2025-10-21105325-ezgif com-video-to-gif-converter](https://github.com/user-attachments/assets/72c05880-230d-4eb6-b726-8499829899a8)
+
 
 ## Future Enhancements
 
